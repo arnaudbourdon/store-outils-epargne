@@ -77,6 +77,14 @@ function describeUnknown(note) {
   const all = useful.join(' ');
   return all.slice(0, 320).replace(/\s+\S*$/, '') + (all.length > 320 ? '…' : '');
 }
+// LE LIEN DE TÉLÉCHARGEMENT d'un ZIP du dossier partagé : download.aspx de SharePoint, tiré du lien de
+// partage du dossier (…/:f:/r/personal/<compte>/<chemin>?…). L'accès reste contrôlé par SharePoint (SSO).
+function downloadUrl(file) {
+  const u = new URL(share.DEFAULT_SHARE_URL);
+  const folder = decodeURIComponent(u.pathname.replace(/^\/:[a-z]:\/r/, ''));
+  const site = folder.split('/').slice(0, 3).join('/'); // /personal/<compte>
+  return `${u.origin}${site}/_layouts/15/download.aspx?SourceUrl=${encodeURIComponent(`${folder}/${file}`)}`;
+}
 // Le nom affichable de l'installeur, quand l'expression du catalogue est un nom exact
 // (/^Installer Store Outils Epargne\.vbs$/i → « Installer Store Outils Epargne.vbs ») ; sinon null.
 function installerName(re) {
@@ -128,6 +136,7 @@ function main() {
       size: p.zip.size,
       at: p.zip.at,
       file: p.zip.name,
+      download: downloadUrl(p.zip.name),
       note,
       install: Boolean(a.silent && a.installer) && p.id !== STORE_ID, // le Store ne s'installe pas par lui-même
       installer: installerName(a.installer),
