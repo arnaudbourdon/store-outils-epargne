@@ -67,7 +67,8 @@ let local = null; // { store: { version }, apps: Map id → { installed, install
 async function readLocal() {
   let next = null;
   try {
-    const res = await fetch(LOCAL, { cache: 'no-store', signal: AbortSignal.timeout(1500) });
+    // 2 s : le Store relit le poste au plus 1 s avant de répondre (INTEGRATION.md du Store, § 3).
+    const res = await fetch(LOCAL, { cache: 'no-store', signal: AbortSignal.timeout(2000) });
     if (res.ok) {
       const s = await res.json();
       next = { store: s.store ?? {}, apps: new Map((s.apps ?? []).map((x) => [x.id, x])) };
@@ -98,7 +99,8 @@ function buttons(a) {
   if (a.web) return `<button class="pill primary" data-web="${esc(a.id)}" title="${esc(a.web)}">Ouvrir</button>`;
   const st = stateOf(a);
   const download = `<button class="pill" data-download="${esc(a.id)}" title="Ouvre le dossier partagé SharePoint (connexion Microsoft)">Télécharger</button>`;
-  if (st?.installed && !st.update) return '';
+  // Lancer : le Store lance l'appli installée ou ramène sa fenêtre (outils-epargne-store://launch/<id>, sans confirmation).
+  if (st?.installed && !st.update) return a.id === data.storeId ? '' : `<button class="pill" data-launch="${esc(a.id)}">${st.running ? 'Afficher' : 'Lancer'}</button>`;
   if (st?.update) return a.install && a.id !== data.storeId ? `<button class="pill primary" data-install="${esc(a.id)}" title="Installation silencieuse de la ${esc(a.version)} par le Store du poste">Mettre à jour</button>` : download;
   return (a.install ? `<button class="pill primary" data-install="${esc(a.id)}" title="Installation silencieuse par le Store Outils Épargne du poste">Installer</button>` : '') + download;
 }
@@ -265,6 +267,10 @@ document.addEventListener('click', (e) => {
   else if (t.dataset.download) openShare(app(t.dataset.download));
   else if (t.dataset.web) openWeb(app(t.dataset.web));
   else if (t.hasAttribute('data-first')) firstTime(null);
+  else if (t.dataset.launch) {
+    location.href = `outils-epargne-store://launch/${encodeURIComponent(t.dataset.launch)}`;
+    setTimeout(readLocal, 4000);
+  }
   else if (t.dataset.detail) showDetail(t.dataset.detail);
   else if (t.dataset.zoom) window.open(t.dataset.zoom, '_blank', 'noopener');
   else if (t.hasAttribute('data-close') || (t.classList.contains('detail') && e.target === t)) $('detail').hidden = true;
