@@ -93,6 +93,12 @@ h2 small { color: var(--muted); font-weight: 400; font-size: 12px; margin-left: 
 .detail .top h3 { margin: 0 0 2px; font-size: 18px; }
 .detail .top .meta { color: var(--muted); font-size: 12px; }
 .detail .actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; padding: 12px 22px; border-bottom: 1px solid var(--line); }
+.dl { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 8px; color: var(--blue); text-decoration: none; font-weight: 600; max-width: 100%; }
+.dl:hover { background: var(--blue-soft); text-decoration: underline; }
+.dl svg { flex: none; }
+.dl span { overflow-wrap: anywhere; }
+.dl small { color: var(--muted); font-weight: 400; white-space: nowrap; }
+.detail .steps .dl { margin: 4px 0; padding-left: 0; }
 .detail .file { color: var(--muted); font: 11.5px "Cascadia Mono", Consolas, monospace; }
 .detail .text { padding: 14px 22px 4px; }
 .detail .text p { margin: 0 0 10px; }

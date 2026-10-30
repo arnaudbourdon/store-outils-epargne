@@ -122,6 +122,12 @@ function buttons(a) {
   if (st?.update) return a.install && a.id !== data.storeId ? `<button class="pill primary" data-install="${esc(a.id)}" title="Installation silencieuse de la ${esc(a.version)} par le Store du poste">Mettre à jour</button>` : download;
   return (a.install ? `<button class="pill primary" data-install="${esc(a.id)}" title="Installation silencieuse par le Store Outils Épargne du poste">Installer</button>` : '') + download;
 }
+// Le lien de téléchargement direct d'un ZIP (SharePoint download.aspx, accès contrôlé par SharePoint / SSO).
+const DL_ICON = '<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M12 4v11m0 0-4.5-4.5M12 15l4.5-4.5M5 20h14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+function dlLink(a) {
+  if (!/^https:\/\/[a-z0-9-]+\.sharepoint\.com\//i.test(a?.download ?? '')) return a?.file ? `<span class="file">${esc(a.file)}</span>` : '';
+  return `<a class="dl" href="${esc(a.download)}" target="_blank" rel="noopener noreferrer" title="Télécharger le ZIP depuis SharePoint (connexion Microsoft)">${DL_ICON}<span>${esc(a.file)}</span>${a.size ? `<small>${esc(sizeTxt(a.size))}</small>` : ''}</a>`;
+}
 function stateLine(a) {
   const st = stateOf(a);
   if (!st || st.web) return '';
@@ -170,7 +176,7 @@ async function showDetail(id) {
   if (!a) return;
   const meta = a.web ? 'Application web' : [a.version ? `Version ${a.version}` : '', sizeTxt(a.size), a.at ? `publiée le ${new Date(a.at).toLocaleDateString('fr-FR')}` : ''].filter(Boolean).join(' · ');
   const box = sheet(`<div class="top">${icon(a)}<div><h3>${esc(a.name)}</h3><div class="meta">${esc(meta)}</div>${stateLine(a)}<div class="meta">${esc(a.description ?? '')}</div></div><button class="ghost close" data-close title="Fermer">✕</button></div>
-    <div class="actions">${buttons(a)}<span class="file">${esc(a.web ?? a.file)}</span></div>
+    <div class="actions">${buttons(a)}${a.web ? `<span class="file">${esc(a.web)}</span>` : dlLink(a)}</div>
     <div class="scroll">
       ${a.shots?.length ? `<div class="shots">${a.shots.map((s, i) => `<figure><div class="shot" data-shot="${i}">Déchiffrement…</div><figcaption>${esc(s.caption)}</figcaption></figure>`).join('')}</div>` : ''}
       ${a.web ? '' : `<h4>Nouveautés de la version ${esc(a.version ?? '')}</h4>
@@ -242,13 +248,13 @@ function firstTime(a) {
     <div class="scroll text">
       <p>Les applis s’installent en un clic par le <b>Store Outils Épargne</b>, un petit programme installé sur votre poste : il télécharge l’appli depuis SharePoint et l’installe en silence. Une page web ne peut pas le faire elle-même.</p>
       <ol class="steps">
-        <li><b>Téléchargez le Store.</b> ${store ? `Le dossier partagé SharePoint s’ouvre (connexion Microsoft) : prenez « <b>${esc(store.file)}</b> ».<br><button class="pill primary" data-download="${esc(store.id)}">Télécharger le Store</button>` : 'Il n’est pas encore publié dans le dossier partagé : demandez-le à Arnaud.'}</li>
+        <li><b>Téléchargez le Store</b> (connexion Microsoft si SharePoint la demande). ${store ? `<br>${dlLink(store)}<br><span class="meta">Le lien ne marche pas ? </span><button class="pill" data-download="${esc(store.id)}">Ouvrir le dossier partagé</button>` : 'Il n’est pas encore publié dans le dossier partagé : demandez-le à Arnaud.'}</li>
         <li><b>Installez-le.</b> Dans Téléchargements, clic droit sur le ZIP &gt; « Extraire tout », puis double-clic sur ${store?.installer ? `« <b>${esc(store.installer)}</b> »` : 'son installeur'}. Le Store s’ouvre ; il démarre ensuite avec Windows.</li>
         <li><b>Revenez ici</b>${a ? ` et cliquez de nouveau « Installer » sur ${esc(a.name)}` : ' et cliquez « Installer » sur une appli'}. Le navigateur demande « Ouvrir Store Outils Épargne ? » : cochez « Toujours autoriser », puis « Ouvrir ». S’il demande l’accès aux appareils du réseau local, autorisez-le : c’est ainsi que la page voit ce qui est installé.</li>
       </ol>
       <p class="meta">Le Store est déjà installé ? Lancez-le depuis le menu Démarrer (« Store Outils Épargne ») puis recommencez.</p>
     </div>
-    ${a ? `<div class="actions"><span class="meta">Ou sans le Store :</span><button class="pill" data-download="${esc(a.id)}">Télécharger seulement ${esc(a.name)}</button></div>` : ''}`);
+    ${a ? `<div class="actions"><span class="meta">Ou sans le Store, ${esc(a.name)} seul :</span>${dlLink(a)}</div>` : ''}`);
 }
 
 function showLock(msg = '') {
