@@ -64,7 +64,15 @@ function icon(a, cls = 'icon') {
 // version, lancée). Une page web ne voit rien d'autre du poste : sans réponse, l'état reste inconnu.
 const LOCAL = 'http://127.0.0.1:47615/etat';
 let local = null; // { store: { version }, apps: Map id → { installed, installedVersion, running } } ; null = Store muet
+// Chrome / Edge demandent au visiteur l'accès au « réseau local » avant tout appel à 127.0.0.1 ;
+// tant qu'il n'a pas répondu, l'appel reste en attente (d'où le délai). 'denied' : la page l'explique.
+let lna = null;
+let shownLna = null;
+async function readLna() {
+  try { lna = (await navigator.permissions.query({ name: 'local-network-access' })).state; } catch { lna = null; }
+}
 async function readLocal() {
+  await readLna();
   let next = null;
   try {
     // 2 s : le Store relit le poste au plus 1 s avant de répondre (INTEGRATION.md du Store, § 3).
@@ -74,8 +82,9 @@ async function readLocal() {
       next = { store: s.store ?? {}, apps: new Map((s.apps ?? []).map((x) => [x.id, x])) };
     }
   } catch { /* Store absent, fermé, ou accès au réseau local refusé */ }
-  const changed = JSON.stringify(next && [next.store, [...next.apps]]) !== JSON.stringify(local && [local.store, [...local.apps]]);
+  const changed = JSON.stringify(next && [next.store, [...next.apps]]) !== JSON.stringify(local && [local.store, [...local.apps]]) || lna !== shownLna;
   local = next;
+  shownLna = lna;
   if (changed && data) render();
 }
 
@@ -130,7 +139,9 @@ function render() {
   $('sub').textContent = `${data.apps.length} applis · catalogue du ${new Date(data.generatedAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })}`;
   const hint = local
     ? ''
-    : `<div class="hint">Le Store Outils Épargne ne répond pas : la page ne peut pas savoir ce qui est installé sur ce poste. Lancez-le (menu Démarrer), ou installez-le si c’est votre première fois. <button class="pill" data-first>Première fois ?</button></div>`;
+    : lna === 'denied'
+      ? `<div class="hint">Ce navigateur interdit à la page de consulter le Store Outils Épargne du poste (accès au réseau local refusé) : impossible de savoir ce qui est installé. Pour l’autoriser : cadenas à gauche de l’adresse &gt; Paramètres du site &gt; « Accès au réseau local » &gt; Autoriser, puis rechargez la page.</div>`
+      : `<div class="hint">Le Store Outils Épargne ne répond pas : la page ne peut pas savoir ce qui est installé sur ce poste. Lancez-le (menu Démarrer), ou installez-le si c’est votre première fois. Si le navigateur demande l’accès aux appareils du réseau local, autorisez-le. <button class="pill" data-first>Première fois ?</button></div>`;
   const grids = !list.length
     ? `<div class="empty">${q ? 'Aucune appli ne correspond.' : 'Aucune appli publiée.'}</div>`
     : local
