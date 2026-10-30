@@ -63,6 +63,7 @@ function icon(a, cls = 'icon') {
 // L'ÉTAT DU POSTE : le Store Electron, s'il tourne, répond sur ce poste seulement à LOCAL (installée,
 // version, lancée). Une page web ne voit rien d'autre du poste : sans réponse, l'état reste inconnu.
 const LOCAL = 'http://127.0.0.1:47615/etat';
+const STORE_SHOW = '0.1.2'; // première version du Store qui montre sa fenêtre sur outils-epargne-store://show (vérifié en prod le 30/10)
 let local = null; // { store: { version }, apps: Map id → { installed, installedVersion, running } } ; null = Store muet
 // Chrome / Edge demandent au visiteur l'accès au « réseau local » avant tout appel à 127.0.0.1 ;
 // tant qu'il n'a pas répondu, l'appel reste en attente (d'où le délai). 'denied' : la page l'explique.
@@ -99,7 +100,8 @@ function compare(a, b) {
 function stateOf(a) {
   if (!local) return null;
   if (a.web) return { installed: true, web: true };
-  const l = a.id === data.storeId ? { installed: true, installedVersion: local.store.version } : local.apps.get(a.id);
+  // Le Store répond à LOCAL : il est forcément lancé (souvent fenêtre masquée).
+  const l = a.id === data.storeId ? { installed: true, running: true, installedVersion: local.store.version } : local.apps.get(a.id);
   if (!l?.installed) return { installed: false };
   return { ...l, update: Boolean(l.installedVersion && a.version && compare(a.version, l.installedVersion) > 0) };
 }
@@ -109,7 +111,11 @@ function buttons(a) {
   const st = stateOf(a);
   const download = `<button class="pill" data-download="${esc(a.id)}" title="Ouvre le dossier partagé SharePoint (connexion Microsoft)">Télécharger</button>`;
   // Lancer : le Store lance l'appli installée ou ramène sa fenêtre (outils-epargne-store://launch/<id>, sans confirmation).
-  if (st?.installed && !st.update) return a.id === data.storeId ? '' : `<button class="pill" data-launch="${esc(a.id)}">${st.running ? 'Afficher' : 'Lancer'}</button>`;
+  if (st?.installed && !st.update) {
+    // Le Store lui-même : outils-epargne-store://show montre sa fenêtre (launch/AppStore est ignoré), à partir de STORE_SHOW.
+    if (a.id === data.storeId) return compare(local.store.version, STORE_SHOW) >= 0 ? '<button class="pill" data-show>Afficher</button>' : '';
+    return `<button class="pill" data-launch="${esc(a.id)}">${st.running ? 'Afficher' : 'Lancer'}</button>`;
+  }
   if (st?.update) return a.install && a.id !== data.storeId ? `<button class="pill primary" data-install="${esc(a.id)}" title="Installation silencieuse de la ${esc(a.version)} par le Store du poste">Mettre à jour</button>` : download;
   return (a.install ? `<button class="pill primary" data-install="${esc(a.id)}" title="Installation silencieuse par le Store Outils Épargne du poste">Installer</button>` : '') + download;
 }
@@ -278,6 +284,7 @@ document.addEventListener('click', (e) => {
   else if (t.dataset.download) openShare(app(t.dataset.download));
   else if (t.dataset.web) openWeb(app(t.dataset.web));
   else if (t.hasAttribute('data-first')) firstTime(null);
+  else if (t.hasAttribute('data-show')) location.href = 'outils-epargne-store://show';
   else if (t.dataset.launch) {
     location.href = `outils-epargne-store://launch/${encodeURIComponent(t.dataset.launch)}`;
     setTimeout(readLocal, 4000);
