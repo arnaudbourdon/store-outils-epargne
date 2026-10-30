@@ -1,0 +1,6 @@
+# Jeton d'accès, sel, catalogue en clair, lien d'accès : JAMAIS publiés.
+.private/
+# Copie préparée pour le dépôt par la page GitHub (Add file > Upload files).
+_a_publier/
+# Captures en clair (seules leurs copies chiffrées de docs/media sont publiées).
+captures/
