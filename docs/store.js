@@ -283,10 +283,40 @@ document.addEventListener('click', (e) => {
     setTimeout(readLocal, 4000);
   }
   else if (t.dataset.detail) showDetail(t.dataset.detail);
-  else if (t.dataset.zoom) window.open(t.dataset.zoom, '_blank', 'noopener');
+  else if (t.dataset.zoom) zoom(t);
   else if (t.hasAttribute('data-close') || (t.classList.contains('detail') && e.target === t)) $('detail').hidden = true;
 });
-document.addEventListener('keydown', (e) => { if (e.key === 'Escape') $('detail').hidden = true; });
+// LE ZOOM D'UNE CAPTURE : dans la page, par-dessus la fiche. Jamais de nouvel onglet : l'adresse blob:
+// d'une capture déchiffrée n'est pas lisible par un onglet ouvert à part (onglet vide, page re-verrouillée).
+// Clic ou Échap : fermer ; flèches : capture précédente / suivante de la même fiche.
+let zoomed = [];
+let zoomAt = 0;
+function zoom(img) {
+  zoomed = [...$('detail').querySelectorAll('img.shot')];
+  zoomAt = Math.max(0, zoomed.indexOf(img));
+  showZoom();
+}
+function showZoom() {
+  const img = zoomed[zoomAt];
+  if (!img) return;
+  $('zoom').innerHTML = `<figure><img src="${esc(img.src)}" alt="${esc(img.alt)}"><figcaption>${esc(img.alt)}${zoomed.length > 1 ? ` · ${zoomAt + 1}/${zoomed.length} (← →)` : ''}</figcaption></figure>`;
+  $('zoom').hidden = false;
+}
+$('zoom').addEventListener('click', (e) => {
+  e.stopPropagation();
+  $('zoom').hidden = true;
+});
+document.addEventListener('keydown', (e) => {
+  if (!$('zoom').hidden) {
+    if (e.key === 'Escape') $('zoom').hidden = true;
+    else if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+      zoomAt = (zoomAt + (e.key === 'ArrowRight' ? 1 : zoomed.length - 1)) % zoomed.length;
+      showZoom();
+    }
+    return;
+  }
+  if (e.key === 'Escape') $('detail').hidden = true;
+});
 $('search').addEventListener('input', (e) => { filter = e.target.value; render(); });
 $('lock').addEventListener('submit', (e) => {
   e.preventDefault();

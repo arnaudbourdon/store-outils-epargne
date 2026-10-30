@@ -101,6 +101,10 @@ h2 small { color: var(--muted); font-weight: 400; font-size: 12px; margin-left: 
 .detail .note { padding: 8px 22px 20px; white-space: pre-wrap; font: 12px/1.5 "Cascadia Mono", Consolas, monospace; }
 .detail .close { margin-left: auto; align-self: flex-start; }
 
+.zoom { position: fixed; inset: 0; z-index: 7; background: rgba(0, 0, 0, 0.82); display: flex; align-items: center; justify-content: center; padding: 24px; cursor: zoom-out; }
+.zoom figure { margin: 0; display: flex; flex-direction: column; align-items: center; gap: 10px; max-width: 100%; max-height: 100%; }
+.zoom img { max-width: 100%; max-height: calc(100vh - 90px); border-radius: 10px; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5); background: #fff; }
+.zoom figcaption { color: #fff; font-size: 13px; text-align: center; }
 .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 6; background: #1d1d1f; color: #fff; padding: 10px 18px; border-radius: 14px; box-shadow: var(--shadow); max-width: calc(100% - 32px); text-align: center; }
 
 @media (max-width: 640px) {
