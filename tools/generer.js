@@ -77,6 +77,12 @@ function describeUnknown(note) {
   const all = useful.join(' ');
   return all.slice(0, 320).replace(/\s+\S*$/, '') + (all.length > 320 ? '…' : '');
 }
+// Le nom affichable de l'installeur, quand l'expression du catalogue est un nom exact
+// (/^Installer Store Outils Epargne\.vbs$/i → « Installer Store Outils Epargne.vbs ») ; sinon null.
+function installerName(re) {
+  const src = re instanceof RegExp ? re.source.replace(/^\^/, '').replace(/\$$/, '') : null;
+  return src && !/[*+?()[\]{}|]|(^|[^\\])\./.test(src) ? src.replace(/\\(.)/g, '$1') : null;
+}
 function dataUri(file) {
   return fs.existsSync(file) ? `data:${MIME[path.extname(file).toLowerCase()] ?? 'application/octet-stream'};base64,${fs.readFileSync(file).toString('base64')}` : null;
 }
@@ -124,6 +130,7 @@ function main() {
       file: p.zip.name,
       note,
       install: Boolean(a.silent && a.installer) && p.id !== STORE_ID, // le Store ne s'installe pas par lui-même
+      installer: installerName(a.installer),
       shots: shotsFor(p.id)
     };
   });
