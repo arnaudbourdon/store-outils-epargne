@@ -63,6 +63,7 @@ function icon(a, cls = 'icon') {
 // L'ÉTAT DU POSTE : le Store Electron, s'il tourne, répond sur ce poste seulement à LOCAL (installée,
 // version, lancée). Une page web ne voit rien d'autre du poste : sans réponse, l'état reste inconnu.
 const LOCAL = 'http://127.0.0.1:47615/etat';
+const STORE_SELF_UPDATE = '0.1.3'; // première version du Store qui se met à jour depuis le dossier partagé
 const STORE_SHOW = '0.1.2'; // première version du Store qui montre sa fenêtre sur outils-epargne-store://show (vérifié en prod le 30/10)
 let local = null; // { store: { version }, apps: Map id → { installed, installedVersion, running } } ; null = Store muet
 // Chrome / Edge demandent au visiteur l'accès au « réseau local » avant tout appel à 127.0.0.1 ;
@@ -116,6 +117,8 @@ function buttons(a) {
     if (a.id === data.storeId) return compare(local.store.version, STORE_SHOW) >= 0 ? '<button class="pill" data-show>Afficher</button>' : '';
     return `<button class="pill" data-launch="${esc(a.id)}">${st.running ? 'Afficher' : 'Lancer'}</button>`;
   }
+  // Le Store se met à jour lui-même depuis la 0.1.3 (bandeau jaune) : « Mettre à jour » l'affiche.
+  if (st?.update && a.id === data.storeId && compare(local.store.version, STORE_SELF_UPDATE) >= 0) return '<button class="pill primary" data-show title="Le Store se met à jour lui-même : bandeau jaune dans sa fenêtre">Mettre à jour</button>';
   if (st?.update) return a.install && a.id !== data.storeId ? `<button class="pill primary" data-install="${esc(a.id)}" title="Installation silencieuse de la ${esc(a.version)} par le Store du poste">Mettre à jour</button>` : download;
   return (a.install ? `<button class="pill primary" data-install="${esc(a.id)}" title="Installation silencieuse par le Store Outils Épargne du poste">Installer</button>` : '') + download;
 }
