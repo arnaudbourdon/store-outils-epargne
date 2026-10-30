@@ -49,13 +49,13 @@ h2 small { color: var(--muted); font-weight: 400; font-size: 12px; margin-left: 
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 14px; margin-bottom: 26px; }
 .empty { color: var(--muted); padding: 40px 0; text-align: center; }
 
-.app { background: var(--card); border-radius: 16px; box-shadow: var(--shadow); padding: 16px 10px 14px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 6px; transition: transform 0.12s ease; }
+.app { min-width: 0; overflow: hidden; background: var(--card); border-radius: 16px; box-shadow: var(--shadow); padding: 16px 10px 14px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 6px; transition: transform 0.12s ease; }
 .app:hover { transform: translateY(-2px); }
 .app .icon { width: 84px; height: 84px; border-radius: 20px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12); background: var(--bg); object-fit: cover; cursor: pointer; }
 .icon.letters { display: flex; align-items: center; justify-content: center; font-size: 30px; font-weight: 700; color: #fff; background: linear-gradient(135deg, #4f46e5, #f26b5b); }
 .app .name { font-weight: 600; font-size: 13.5px; margin-top: 4px; cursor: pointer; }
 .app .meta { color: var(--muted); font-size: 11.5px; min-height: 16px; }
-.app .desc { color: var(--muted); font-size: 11.5px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.app .desc { width: 100%; padding: 0 4px; overflow-wrap: anywhere; color: var(--muted); font-size: 11.5px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 .app .btns { display: flex; gap: 6px; margin-top: auto; padding-top: 4px; flex-wrap: wrap; justify-content: center; }
 .app .state { font-size: 11.5px; }
 .state.installed { color: var(--green); }
