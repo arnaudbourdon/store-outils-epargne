@@ -12,14 +12,16 @@
 </head>
 <body>
   <header>
-    <img class="logo" src="logo.svg" alt="">
-    <div class="titles">
-      <h1>Store Outils Épargne</h1>
-      <div class="sub" id="sub">Accès réservé à l’équipe</div>
+    <div class="bar">
+      <img class="logo" src="logo.svg" alt="">
+      <div class="titles">
+        <h1>Store Outils Épargne</h1>
+        <div class="sub" id="sub">Accès réservé à l’équipe</div>
+      </div>
+      <span class="grow"></span>
+      <button id="forget" class="ghost" title="Oublier le jeton sur ce navigateur" hidden>🔒</button>
+      <input id="search" type="search" placeholder="Rechercher une appli" autocomplete="off" hidden>
     </div>
-    <span class="grow"></span>
-    <input id="search" type="search" placeholder="Rechercher une appli" autocomplete="off" hidden>
-    <button id="forget" class="ghost" title="Oublier le jeton sur ce navigateur" hidden>🔒</button>
   </header>
   <form id="lock" class="lock" hidden>
     <img class="logo" src="logo.svg" alt="">
