@@ -1,0 +1,101 @@
+/* Repris de AppStore\app\store.css (même charte que le Store Electron), adapté au web : jeton, mobile. */
+:root {
+  --bg: #f5f5f7;
+  --card: #ffffff;
+  --text: #1d1d1f;
+  --muted: #6e6e73;
+  --line: #e3e3e8;
+  --blue: #0a6cff;
+  --blue-soft: #e8f0ff;
+  --green: #1f9d55;
+  --green-soft: #e3f6ea;
+  --orange: #c56a00;
+  --red: #c62828;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.06), 0 6px 20px rgba(0, 0, 0, 0.06);
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1c1c1e;
+    --card: #2c2c2e;
+    --text: #f5f5f7;
+    --muted: #a1a1a6;
+    --line: #3a3a3c;
+    --blue-soft: #16304f;
+    --green-soft: #173726;
+    --red: #ff6b6b;
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+  }
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; min-height: 100%; }
+body { font: 13px/1.4 "Segoe UI Variable", "Segoe UI", system-ui, sans-serif; background: var(--bg); color: var(--text); }
+button { font: inherit; cursor: pointer; }
+
+header { position: sticky; top: 0; z-index: 2; display: flex; align-items: center; gap: 12px; padding: 14px 22px 12px; border-bottom: 1px solid var(--line); background: var(--card); }
+header .logo { width: 44px; height: 44px; }
+header h1 { margin: 0; font-size: 20px; font-weight: 700; letter-spacing: -0.01em; }
+header .sub { color: var(--muted); font-size: 12px; }
+.grow { flex: 1; }
+#search { width: 220px; padding: 6px 12px; border: 1px solid var(--line); border-radius: 999px; background: var(--bg); color: var(--text); outline: none; font: inherit; }
+#search:focus { border-color: var(--blue); }
+button.ghost { border: 1px solid var(--line); background: var(--card); color: var(--text); border-radius: 999px; width: 32px; height: 32px; font-size: 15px; flex: none; }
+button.ghost:hover { background: var(--bg); }
+
+main { padding: 18px 22px 30px; }
+h2 { font-size: 17px; margin: 6px 0 12px; font-weight: 700; }
+h2 small { color: var(--muted); font-weight: 400; font-size: 12px; margin-left: 6px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 14px; margin-bottom: 26px; }
+.empty { color: var(--muted); padding: 40px 0; text-align: center; }
+
+.app { background: var(--card); border-radius: 16px; box-shadow: var(--shadow); padding: 16px 10px 14px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 6px; transition: transform 0.12s ease; }
+.app:hover { transform: translateY(-2px); }
+.app .icon { width: 84px; height: 84px; border-radius: 20px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12); background: var(--bg); object-fit: cover; cursor: pointer; }
+.icon.letters { display: flex; align-items: center; justify-content: center; font-size: 30px; font-weight: 700; color: #fff; background: linear-gradient(135deg, #4f46e5, #f26b5b); }
+.app .name { font-weight: 600; font-size: 13.5px; margin-top: 4px; cursor: pointer; }
+.app .meta { color: var(--muted); font-size: 11.5px; min-height: 16px; }
+.app .desc { color: var(--muted); font-size: 11.5px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.app .btns { display: flex; gap: 6px; margin-top: auto; padding-top: 4px; flex-wrap: wrap; justify-content: center; }
+.pill { border: none; border-radius: 999px; padding: 5px 16px; font-weight: 700; font-size: 12.5px; letter-spacing: 0.02em; background: var(--blue-soft); color: var(--blue); }
+.pill:hover { filter: brightness(0.96); }
+.pill.primary { background: var(--blue); color: #fff; }
+.pill:disabled { opacity: 0.55; cursor: default; }
+
+.lock { max-width: 400px; margin: 56px auto; background: var(--card); border-radius: 18px; box-shadow: var(--shadow); padding: 28px 24px; text-align: center; display: flex; flex-direction: column; gap: 12px; align-items: center; }
+.lock .logo { width: 72px; height: 72px; }
+.lock h2 { margin: 0; }
+.lock p { margin: 0; color: var(--muted); }
+.lock input { width: 100%; padding: 10px 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--bg); color: var(--text); font: 15px "Cascadia Mono", Consolas, monospace; letter-spacing: 0.06em; text-align: center; text-transform: uppercase; outline: none; }
+.lock input:focus { border-color: var(--blue); }
+.lock .msg { color: var(--red); min-height: 18px; }
+
+.detail { position: fixed; inset: 0; z-index: 5; background: rgba(0, 0, 0, 0.35); display: flex; align-items: center; justify-content: center; padding: 30px; }
+.detail .sheet { background: var(--card); border-radius: 18px; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3); width: min(720px, 100%); max-height: 100%; display: flex; flex-direction: column; overflow: hidden; }
+.detail .top { display: flex; gap: 16px; align-items: center; padding: 20px 22px 14px; border-bottom: 1px solid var(--line); }
+.detail .top .icon { width: 72px; height: 72px; border-radius: 17px; flex: none; }
+.detail .top h3 { margin: 0 0 2px; font-size: 18px; }
+.detail .top .meta { color: var(--muted); font-size: 12px; }
+.detail .actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; padding: 12px 22px; border-bottom: 1px solid var(--line); }
+.detail .file { color: var(--muted); font: 11.5px "Cascadia Mono", Consolas, monospace; }
+.detail .text { padding: 14px 22px 4px; }
+.detail .text p { margin: 0 0 10px; }
+.detail .scroll { overflow-y: auto; }
+.detail .shots { display: flex; gap: 14px; overflow-x: auto; padding: 16px 22px 6px; }
+.detail figure { margin: 0; flex: none; display: flex; flex-direction: column; gap: 6px; max-width: 80%; }
+.detail figcaption { color: var(--muted); font-size: 11.5px; text-align: center; }
+.detail .shot { max-height: 280px; max-width: 100%; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); object-fit: contain; cursor: zoom-in; }
+.detail div.shot { width: 220px; height: 140px; display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: 11.5px; cursor: default; }
+.detail h4 { margin: 0; padding: 14px 22px 0; font-size: 13px; }
+.detail .note { padding: 8px 22px 20px; white-space: pre-wrap; font: 12px/1.5 "Cascadia Mono", Consolas, monospace; }
+.detail .close { margin-left: auto; align-self: flex-start; }
+
+.toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 6; background: #1d1d1f; color: #fff; padding: 10px 18px; border-radius: 14px; box-shadow: var(--shadow); max-width: calc(100% - 32px); text-align: center; }
+
+@media (max-width: 640px) {
+  header { flex-wrap: wrap; padding: 12px 16px; }
+  #search { order: 5; width: 100%; }
+  main { padding: 16px; }
+  .grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; }
+  .lock { margin: 32px 16px; }
+  .detail { padding: 16px; }
+}

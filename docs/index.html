@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; connect-src 'self'">
+  <meta name="referrer" content="no-referrer">
+  <title>Store Outils Épargne</title>
+  <link rel="icon" href="logo.svg">
+  <link rel="stylesheet" href="store.css">
+</head>
+<body>
+  <header>
+    <img class="logo" src="logo.svg" alt="">
+    <div class="titles">
+      <h1>Store Outils Épargne</h1>
+      <div class="sub" id="sub">Accès réservé à l’équipe</div>
+    </div>
+    <span class="grow"></span>
+    <input id="search" type="search" placeholder="Rechercher une appli" autocomplete="off" hidden>
+    <button id="forget" class="ghost" title="Oublier le jeton sur ce navigateur" hidden>🔒</button>
+  </header>
+  <form id="lock" class="lock" hidden>
+    <img class="logo" src="logo.svg" alt="">
+    <h2>Jeton d’accès</h2>
+    <p>Saisissez le jeton communiqué par Arnaud. Il reste mémorisé sur ce navigateur.</p>
+    <input id="token" type="text" autocomplete="off" spellcheck="false" placeholder="XXXX-XXXX-XXXX-XXXX-XXXX" aria-label="Jeton d’accès">
+    <button class="pill primary" type="submit">Ouvrir le store</button>
+    <div id="lockMsg" class="msg"></div>
+  </form>
+  <main id="main" hidden></main>
+  <div id="detail" class="detail" hidden></div>
+  <div id="toast" class="toast" hidden></div>
+  <script src="store.js"></script>
+</body>
+</html>
