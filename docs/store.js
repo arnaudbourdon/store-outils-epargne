@@ -266,7 +266,8 @@ function showLock(msg = '') {
   $('sub').textContent = 'Accès réservé à l’équipe';
   $('token').focus();
 }
-async function open(token, { fromUser } = {}) {
+// Surtout pas « open » : une fonction de ce nom, au niveau du script, remplace window.open.
+async function openStore(token, { fromUser } = {}) {
   try {
     data = await unlock(token);
   } catch (e) {
@@ -336,7 +337,7 @@ document.addEventListener('keydown', (e) => {
 $('search').addEventListener('input', (e) => { filter = e.target.value; render(); });
 $('lock').addEventListener('submit', (e) => {
   e.preventDefault();
-  if (norm($('token').value)) open($('token').value, { fromUser: true });
+  if (norm($('token').value)) openStore($('token').value, { fromUser: true });
 });
 $('forget').addEventListener('click', () => {
   remembered.set(null);
@@ -354,9 +355,9 @@ function tokenFromLink() {
 }
 window.addEventListener('hashchange', () => {
   const t = tokenFromLink();
-  if (t) open(t, { fromUser: true });
+  if (t) openStore(t, { fromUser: true });
 });
 const fromLink = tokenFromLink();
 const start = fromLink ?? remembered.get();
-if (start) open(start, { fromUser: Boolean(fromLink) });
+if (start) openStore(start, { fromUser: Boolean(fromLink) });
 else showLock();
