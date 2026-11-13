@@ -98,6 +98,8 @@ h2 small { color: var(--muted); font-weight: 400; font-size: 12px; margin-left: 
 .dl svg { flex: none; }
 .dl span { overflow-wrap: anywhere; }
 .dl small { color: var(--muted); font-weight: 400; white-space: nowrap; }
+button.copylink { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border: none; border-radius: 8px; background: none; color: var(--blue); font: inherit; font-weight: 600; white-space: nowrap; cursor: pointer; flex: none; }
+button.copylink:hover { background: var(--blue-soft); text-decoration: underline; }
 .detail .steps .dl { margin: 4px 0; padding-left: 0; }
 .detail .file { color: var(--muted); font: 11.5px "Cascadia Mono", Consolas, monospace; }
 .detail .text { padding: 14px 22px 4px; }
