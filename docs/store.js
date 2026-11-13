@@ -176,7 +176,7 @@ async function showDetail(id) {
   if (!a) return;
   const meta = a.web ? 'Application web' : [a.version ? `Version ${a.version}` : '', sizeTxt(a.size), a.at ? `publiée le ${new Date(a.at).toLocaleDateString('fr-FR')}` : ''].filter(Boolean).join(' · ');
   const box = sheet(`<div class="top">${icon(a)}<div><h3>${esc(a.name)}</h3><div class="meta">${esc(meta)}</div>${stateLine(a)}<div class="meta">${esc(a.description ?? '')}</div></div><button class="ghost close" data-close title="Fermer">✕</button></div>
-    <div class="actions">${buttons(a)}${a.web ? `<span class="file">${esc(a.web)}</span>` : dlLink(a)}</div>
+    <div class="actions">${buttons(a)}${a.web ? `<span class="file">${esc(a.web)}</span>` : dlLink(a)}<button class="ghost" data-copylink="${esc(a.id)}" title="Lien vers cette fiche, à envoyer (il ne contient pas le jeton)">🔗 Copier le lien</button></div>
     <div class="scroll">
       ${a.shots?.length ? `<div class="shots">${a.shots.map((s, i) => `<figure><div class="shot" data-shot="${i}">Déchiffrement…</div><figcaption>${esc(s.caption)}</figcaption></figure>`).join('')}</div>` : ''}
       ${a.web ? '' : `<h4>Nouveautés de la version ${esc(a.version ?? '')}</h4>
@@ -281,6 +281,8 @@ async function openStore(token, { fromUser } = {}) {
   $('forget').hidden = false;
   render();
   readLocal();
+  // Arrivé par un lien de fiche (`#fiche=<id>`) : la fiche s'ouvre une fois le store déverrouillé.
+  if (pendingFiche) { const id = pendingFiche; pendingFiche = null; showDetail(id); }
 }
 // L'état du poste : relu au retour sur l'onglet et toutes les 20 s tant que la page est visible.
 document.addEventListener('visibilitychange', () => { if (!document.hidden && data) readLocal(); });
@@ -290,7 +292,8 @@ document.addEventListener('click', (e) => {
   const t = e.target.closest('button, [data-detail], [data-zoom], .detail');
   if (!t) return;
   const app = (id) => data?.apps.find((a) => a.id === id);
-  if (t.dataset.install) install(app(t.dataset.install));
+  if (t.dataset.copylink) copyFicheLink(app(t.dataset.copylink));
+  else if (t.dataset.install) install(app(t.dataset.install));
   else if (t.dataset.download) openShare(app(t.dataset.download));
   else if (t.dataset.web) openWeb(app(t.dataset.web));
   else if (t.hasAttribute('data-first')) firstTime(null);
@@ -348,15 +351,30 @@ $('forget').addEventListener('click', () => {
 
 // Le lien d'accès : `…/#jeton=XXXX-…` ; le fragment est retiré de l'adresse aussitôt lu (aussi quand
 // le lien est collé dans un onglet déjà ouvert sur la page : seul le fragment change, pas de rechargement).
+// Le lien d'une fiche : `…/#fiche=<id>` (sans le jeton : celui qui le reçoit doit déjà avoir accès au store).
+let pendingFiche = null;
 function tokenFromLink() {
+  const f = /(?:^#|&)fiche=([A-Za-z0-9._-]+)/.exec(location.hash)?.[1];
+  if (f) pendingFiche = f;
   const t = /(?:^#|&)jeton=([^&]+)/.exec(location.hash)?.[1];
-  if (t) history.replaceState(null, '', location.pathname + location.search);
+  if (t || f) history.replaceState(null, '', location.pathname + location.search);
   return t ? decodeURIComponent(t) : null;
 }
 window.addEventListener('hashchange', () => {
   const t = tokenFromLink();
   if (t) openStore(t, { fromUser: true });
+  else if (pendingFiche && data) { const id = pendingFiche; pendingFiche = null; showDetail(id); }
 });
+async function copyFicheLink(a) {
+  if (!a) return;
+  const url = `${location.origin}${location.pathname}#fiche=${encodeURIComponent(a.id)}`;
+  try {
+    await navigator.clipboard.writeText(url);
+    toast(`Lien de la fiche « ${a.name} » copié : ${url}`, 7000);
+  } catch {
+    toast(`Lien de la fiche : ${url}`, 15000);
+  }
+}
 const fromLink = tokenFromLink();
 const start = fromLink ?? remembered.get();
 if (start) openStore(start, { fromUser: Boolean(fromLink) });
