@@ -176,7 +176,7 @@ async function showDetail(id) {
   if (!a) return;
   const meta = a.web ? 'Application web' : [a.version ? `Version ${a.version}` : '', sizeTxt(a.size), a.at ? `publiée le ${new Date(a.at).toLocaleDateString('fr-FR')}` : ''].filter(Boolean).join(' · ');
   const box = sheet(`<div class="top">${icon(a)}<div><h3>${esc(a.name)}</h3><div class="meta">${esc(meta)}</div>${stateLine(a)}<div class="meta">${esc(a.description ?? '')}</div></div><button class="ghost close" data-close title="Fermer">✕</button></div>
-    <div class="actions">${buttons(a)}${a.web ? `<span class="file">${esc(a.web)}</span>` : dlLink(a)}<button class="ghost" data-copylink="${esc(a.id)}" title="Lien vers cette fiche, à envoyer (il ne contient pas le jeton)">🔗 Copier le lien</button></div>
+    <div class="actions">${buttons(a)}${a.web ? `<span class="file">${esc(a.web)}</span>` : dlLink(a)}<button class="copylink" data-copylink="${esc(a.id)}" title="Lien vers cette fiche, à envoyer (il ne contient pas le jeton)">🔗 Copier le lien</button></div>
     <div class="scroll">
       ${a.shots?.length ? `<div class="shots">${a.shots.map((s, i) => `<figure><div class="shot" data-shot="${i}">Déchiffrement…</div><figcaption>${esc(s.caption)}</figcaption></figure>`).join('')}</div>` : ''}
       ${a.web ? '' : `<h4>Nouveautés de la version ${esc(a.version ?? '')}</h4>
