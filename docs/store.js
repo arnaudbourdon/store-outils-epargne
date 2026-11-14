@@ -110,7 +110,10 @@ function stateOf(a) {
 function buttons(a) {
   if (a.web) return `<button class="pill primary" data-web="${esc(a.id)}" title="${esc(a.web)}">Ouvrir</button>`;
   const st = stateOf(a);
-  const download = `<button class="pill" data-download="${esc(a.id)}" title="Ouvre le dossier partagé SharePoint (connexion Microsoft)">Télécharger</button>`;
+  // (14/11/2026) « Télécharger » enregistre le ZIP dans Téléchargements (lien direct SharePoint, dlHref) ; sans lien
+  // valide dans le catalogue, il ouvre le dossier partagé comme avant.
+  const download = dlHref(a) ? `<a class="pill" href="${esc(dlHref(a))}" target="_blank" rel="noopener noreferrer" data-dl="${esc(a.file)}" title="Enregistre ${esc(a.file)} dans Téléchargements (connexion Microsoft si SharePoint la demande)">Télécharger</a>`
+    : `<button class="pill" data-download="${esc(a.id)}" title="Ouvre le dossier partagé SharePoint (connexion Microsoft)">Télécharger</button>`;
   // Lancer : le Store lance l'appli installée ou ramène sa fenêtre (outils-epargne-store://launch/<id>, sans confirmation).
   if (st?.installed && !st.update) {
     // Le Store lui-même : outils-epargne-store://show montre sa fenêtre (launch/AppStore est ignoré), à partir de STORE_SHOW.
@@ -124,10 +127,14 @@ function buttons(a) {
 }
 // Le lien de téléchargement direct d'un ZIP (SharePoint download.aspx, accès contrôlé par SharePoint / SSO).
 const DL_ICON = '<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M12 4v11m0 0-4.5-4.5M12 15l4.5-4.5M5 20h14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-function dlLink(a) {
-  if (!/^https:\/\/[a-z0-9-]+\.sharepoint\.com\//i.test(a?.download ?? '')) return a?.file ? `<span class="file">${esc(a.file)}</span>` : '';
-  return `<a class="dl" href="${esc(a.download)}" target="_blank" rel="noopener noreferrer" title="Télécharger le ZIP depuis SharePoint (connexion Microsoft)">${DL_ICON}<span>${esc(a.file)}</span>${a.size ? `<small>${esc(sizeTxt(a.size))}</small>` : ''}</a>`;
+// Le lien direct d'un fichier (paquet ou ZIP secondaire), seulement vers le SharePoint de MH ; sinon null.
+const dlHref = (f) => (/^https:\/\/[a-z0-9-]+\.sharepoint\.com\//i.test(f?.download ?? '') ? f.download : null);
+function dlLink(a, label = null) {
+  if (!dlHref(a)) return a?.file ? `<span class="file">${esc(a.file)}</span>` : '';
+  return `<a class="dl" href="${esc(dlHref(a))}" target="_blank" rel="noopener noreferrer" data-dl="${esc(a.file)}" title="Enregistre ${esc(a.file)} dans Téléchargements (connexion Microsoft si SharePoint la demande)">${DL_ICON}<span>${esc(label ?? a.file)}</span>${a.size ? `<small>${esc(sizeTxt(a.size))}</small>` : ''}</a>`;
 }
+// (14/11/2026) Les ZIP secondaires d'une appli (variante macOS, sources) : un lien direct chacun, dans sa fiche.
+const extrasLinks = (a) => (a.extras ?? []).map((x) => dlLink(x, `${x.label === 'sources' ? 'Sources' : `Pour ${x.label}`}${x.version && x.version !== a.version ? ` ${x.version}` : ''} — ${x.file}`)).join('');
 function stateLine(a) {
   const st = stateOf(a);
   if (!st || st.web) return '';
@@ -176,7 +183,7 @@ async function showDetail(id) {
   if (!a) return;
   const meta = a.web ? 'Application web' : [a.version ? `Version ${a.version}` : '', sizeTxt(a.size), a.at ? `publiée le ${new Date(a.at).toLocaleDateString('fr-FR')}` : ''].filter(Boolean).join(' · ');
   const box = sheet(`<div class="top">${icon(a)}<div><h3>${esc(a.name)}</h3><div class="meta">${esc(meta)}</div>${stateLine(a)}<div class="meta">${esc(a.description ?? '')}</div></div><button class="ghost close" data-close title="Fermer">✕</button></div>
-    <div class="actions">${buttons(a)}${a.web ? `<span class="file">${esc(a.web)}</span>` : dlLink(a)}<button class="copylink" data-copylink="${esc(a.id)}" title="Lien vers cette fiche, à envoyer (il ne contient pas le jeton)">🔗 Copier le lien</button></div>
+    <div class="actions">${buttons(a)}${a.web ? `<span class="file">${esc(a.web)}</span>` : dlLink(a) + extrasLinks(a)}<button class="copylink" data-copylink="${esc(a.id)}" title="Lien vers cette fiche, à envoyer (il ne contient pas le jeton)">🔗 Copier le lien</button>${a.web ? '' : `<button class="copylink" data-download="${esc(a.id)}" title="Si le téléchargement ne démarre pas : ouvre le dossier partagé SharePoint">📂 Dossier partagé</button>`}</div>
     <div class="scroll">
       ${a.shots?.length ? `<div class="shots">${a.shots.map((s, i) => `<figure><div class="shot" data-shot="${i}">Déchiffrement…</div><figcaption>${esc(s.caption)}</figcaption></figure>`).join('')}</div>` : ''}
       ${a.web ? '' : `<h4>Nouveautés de la version ${esc(a.version ?? '')}</h4>
@@ -207,6 +214,10 @@ function openShare(a) {
   if (!/^https:\/\/[a-z0-9-]+(-my)?\.sharepoint\.com\//i.test(url ?? '')) return toast('Lien du dossier partagé invalide dans le catalogue.');
   window.open(url, '_blank', 'noopener');
   if (a) toast(`Dans le dossier partagé, téléchargez « ${a.file} », puis lancez l’installeur qu’il contient.`, 9000);
+}
+// (14/11/2026) Un lien « Télécharger » direct : le navigateur enregistre le fichier dans Téléchargements.
+function downloading(file) {
+  toast(`Téléchargement de « ${file} » dans Téléchargements… Rien ne vient ? Connectez-vous à SharePoint dans l’onglet ouvert, ou passez par « 📂 Dossier partagé » dans la fiche.`, 9000);
 }
 
 // Une appli web du catalogue : son adresse (https seulement), dans un nouvel onglet.
@@ -289,6 +300,9 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden && da
 setInterval(() => { if (!document.hidden && data) readLocal(); }, 20000);
 
 document.addEventListener('click', (e) => {
+  // (14/11/2026) lien de téléchargement direct : le navigateur le suit (rien d'empêché), la page explique
+  const dl = e.target.closest('a[data-dl]');
+  if (dl) return downloading(dl.dataset.dl);
   const t = e.target.closest('button, [data-detail], [data-zoom], .detail');
   if (!t) return;
   const app = (id) => data?.apps.find((a) => a.id === id);
