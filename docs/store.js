@@ -154,7 +154,13 @@ function card(a) {
     <div class="btns">${buttons(a)}</div>
   </div>`;
 }
-const section = (title, list) => (list.length ? `<h2>${title}<small>${list.length} appli${list.length > 1 ? 's' : ''}</small></h2><div class="grid">${list.map(card).join('')}</div>` : '');
+// (15/11/2026) LES ONGLETS DE CATÉGORIES, comme le Store Electron (0.1.43) : « Tous » reprend chaque catégorie dans sa
+// section (titre, paragraphe, grille), le store en tête comme prérequis ; puis un onglet par catégorie (`data.categories`,
+// celles de AppStore\lib\apps.js, mises dans le catalogue par generer.js). La catégorie d'une appli vient de la ligne
+// « Catégorie : » de sa note, puis de sa fiche ; sans catégorie connue : « Autres » (dans « Tous » seulement).
+// La recherche filtre dans l'onglet ouvert ; le compteur de chaque onglet en tient compte.
+let tab = 'tous';
+const plural = (n, w) => `${n} ${w}${n > 1 ? 's' : ''}`;
 function render() {
   const q = filter.trim().toLowerCase();
   const list = data.apps.filter((a) => !q || `${a.name} ${a.description ?? ''} ${a.id}`.toLowerCase().includes(q));
@@ -164,12 +170,30 @@ function render() {
     : lna === 'denied'
       ? `<div class="hint">Ce navigateur interdit à la page de consulter le Store Outils Épargne du poste (accès au réseau local refusé) : impossible de savoir ce qui est installé. Pour l’autoriser : cadenas à gauche de l’adresse &gt; Paramètres du site &gt; « Accès au réseau local » &gt; Autoriser, puis rechargez la page.</div>`
       : `<div class="hint">Le Store Outils Épargne ne répond pas : la page ne peut pas savoir ce qui est installé sur ce poste. Lancez-le (menu Démarrer), ou installez-le si c’est votre première fois. Si le navigateur demande l’accès aux appareils du réseau local, autorisez-le. <button class="pill" data-first>Première fois ?</button></div>`;
-  const grids = !list.length
-    ? `<div class="empty">${q ? 'Aucune appli ne correspond.' : 'Aucune appli publiée.'}</div>`
-    : local
-      ? section('À découvrir', list.filter((a) => !stateOf(a).installed)) + section('Installées sur ce poste', list.filter((a) => stateOf(a).installed))
-      : section('Les outils de l’équipe', list);
-  $('main').innerHTML = hint + grids;
+  const cats = data.categories?.length ? data.categories : [{ id: 'autres', name: 'Les outils de l’équipe', tab: false }];
+  const catOf = (a) => (cats.some((c) => c.id === a.category) ? a.category : 'autres');
+  if (!cats.some((c) => c.id === 'autres')) cats.push({ id: 'autres', name: 'Autres', tab: false });
+  const tabs = [{ id: 'tous', name: 'Tous' }, ...cats.filter((c) => c.tab !== false)];
+  if (!tabs.some((t) => t.id === tab)) tab = 'tous';
+  const inTab = (id) => list.filter((a) => id === 'tous' || catOf(a) === id);
+  const installedTxt = (apps) => (local ? ` · ${plural(apps.filter((a) => stateOf(a).installed).length, 'installée')}` : '');
+  const tabsHtml = `<nav class="tabs">${tabs.map((t) => `<button class="tab${t.id === tab ? ' on' : ''}" data-tab="${esc(t.id)}">${esc(t.name)}<span class="n">${inTab(t.id).length}</span></button>`).join('')}</nav>`;
+  const section = (c, apps, { title = true } = {}) => {
+    if (!apps.length) return '';
+    return `<section class="cat cat-${esc(c.id)}">
+      ${title ? `<h2>${esc(c.name)}<small>${plural(apps.length, 'appli')}${installedTxt(apps)}</small></h2>` : ''}
+      ${c.intro ? `<p class="intro">${esc(c.intro)}</p>` : ''}
+      <div class="grid">${apps.map(card).join('')}</div>
+    </section>`;
+  };
+  const shown = inTab(tab);
+  let body;
+  if (!data.apps.length) body = '<div class="empty">Aucune appli publiée.</div>';
+  else if (!shown.length) body = `<div class="empty">${q ? 'Aucune appli ne correspond.' : 'Aucune appli publiée dans cette catégorie.'}</div>`;
+  else if (tab === 'tous') body = cats.map((c) => section(c, list.filter((a) => catOf(a) === c.id))).join('');
+  else body = section(cats.find((c) => c.id === tab) ?? { id: tab, name: tab }, shown, { title: false });
+  const total = tab === 'tous' && shown.length ? `<h2 class="total">Catalogue<small>${plural(shown.length, 'appli')}${local ? `${installedTxt(shown)} sur ce poste` : ''}</small></h2>` : '';
+  $('main').innerHTML = hint + tabsHtml + total + body;
 }
 
 function sheet(html) {
@@ -303,6 +327,8 @@ document.addEventListener('click', (e) => {
   // (14/11/2026) lien de téléchargement direct : le navigateur le suit (rien d'empêché), la page explique
   const dl = e.target.closest('a[data-dl]');
   if (dl) return downloading(dl.dataset.dl);
+  const tb = e.target.closest('[data-tab]');
+  if (tb) { tab = tb.dataset.tab; window.scrollTo(0, 0); return render(); }
   const t = e.target.closest('button, [data-detail], [data-zoom], .detail');
   if (!t) return;
   const app = (id) => data?.apps.find((a) => a.id === id);
